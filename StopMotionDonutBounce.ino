@@ -148,18 +148,15 @@ void printModeAndMotionInfo() {
 
 	Serial.print("MotionState:  ");
 	Serial.print(motionStateString);
-
-/*
-	if (doesMotionExistInDonutProximity()) {
-		Serial.print("MOTION!!");		
-	} else {
-		Serial.print("NO MOTION");
-	}
-*/
 }
 
 void adjustDonutModeForLastInput() {
 		
+	MotionState newMotionState = currentMotionState;
+	// 
+	if (currentMotionState == MotionStateNoMotionNoObjects) {
+		
+	}
 
 	/*
 	
@@ -189,32 +186,17 @@ MotionState currentMotionState() {
 	}
 
 	MotionState motionState = MotionStateUndefined;
-	if (!motionPresent && !trackingObjects) {
+	if (!motionPresent && !trackingObjects) {	// No motion and no objects
 		motionState = MotionStateNoMotionNoObjects;
-	} else if (motionPresent && !trackingObjects) {
+	} else if (motionPresent && !trackingObjects) {	// motion but no objects
 		motionState = MotionStateMotionWithoutObjects;
-	} else if (motionPresent && trackingObjects) {
+	} else if (motionPresent && trackingObjects) { // motion and objects
 		motionState = MotionStateMotionWithObjects;
-	} else if (!motionPresent && trackingObjects) {
+	} else if (!motionPresent && trackingObjects) { // No motion and objects 
 		motionState = MotionStateNoMotionWithObjects;
 	}
 
 	return motionState;
-}
-
-
-bool doesMotionExistInDonutProximity() {
-	bool motionExists = false;
-
-	// we declare there is motion if ping has been active within NON_MOTION_DURATION and we are tracking an object rather than air 
-	if (millis() - lastNonMotionTime < NON_MOTION_DURATION) {
-		if (referenceInput.pingOne < PING_TRACKING_OBJECT_THRESHOLD ||
-			referenceInput.pingTwo < PING_TRACKING_OBJECT_THRESHOLD||
-			referenceInput.irRange > IR_RANGE_TRACKING_OBJECT_THRESHOLD) {
-			motionExists = true;
-		}
-	}
-	return motionExists;
 }
 
 int targetSolenoid = 0;

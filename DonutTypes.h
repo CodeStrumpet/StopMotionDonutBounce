@@ -10,7 +10,7 @@ typedef struct {
 
 typedef enum DonutMode {
 	DonutModeNone,
-	DonutModeAmbient,
+	DonutModeAttract,
 	DonutModeAmbientToIntrigued,
 	DonutModeIntrigued,
 	DonutModeAngry,
