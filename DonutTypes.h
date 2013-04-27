@@ -18,6 +18,13 @@ typedef enum DonutMode {
 	DonutModeTesting
 } DonutMode;
 
+typedef enum MotionState {
+	MotionStateUndefined,
+	MotionStateNoMotionNoObjects,
+	MotionStateMotionWithoutObjects,
+	MotionStateMotionWithObjects,
+	MotionStateNoMotionWithObjects,
+} MotionState;
 
 SensorsInput sensorsInputLowPassResult(SensorsInput newInput, SensorsInput refInput, float alpha) {
 	refInput.motion = (newInput.motion * alpha) + (refInput.motion * (1.0 - alpha));
