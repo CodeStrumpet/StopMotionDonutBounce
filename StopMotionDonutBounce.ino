@@ -1,5 +1,6 @@
 
 #include "DonutTypes.h"
+#include "Helpers.h"
 
 #define NUM_SOLENOIDS 4
 
@@ -8,17 +9,26 @@ int calibrationTime = 30; // the time we give the sensor to calibrate (10-60 sec
 int pirPin = 10;
 
 // Solenoids
-int solenoidPins[] = {2,7,8,9};
+int solenoidPins[] = {2, 7, 8, 9};
 boolean solenoidState[] = {false, false, false, false};
+
+// Ping sensors
+int pingPins[] = {11, 12};
+long pingDistances[] = {0, 0};
+
+// IR range sensor
+int irRangePin = A0;
 
 // Structs to hold current and reference sensor values
 SensorsInput currInput, referenceInput;
 
 // low pass alpha
-const float lowPassAlpha = 0.5;
+const float lowPassAlpha = 0.1;
 
 // Current Mode
 DonutMode currMode = DonutModeTesting;
+
+long unsigned int enteredModeTime;
 
 void setup() {
 
@@ -59,25 +69,58 @@ void loop() {
 }
 
 void captureSensorsInput() {
+
+	// read IR Motion sensor
 	if (digitalRead(pirPin) == HIGH) {
 		currInput.motion = 1.0;
 	} else {
 		currInput.motion = 0.0;
 	}
+
+	// read Ping sensors
+	currInput.pingOne = inchesForPingPin(pingPins[0]);
+	currInput.pingTwo = inchesForPingPin(pingPins[1]);
+
+	// read IR Range sensor
+	currInput.irRange = analogRead(irRangePin);
 }
 
 void printSensorValues() {
 	Serial.print("Curr Input: {");
 	Serial.print("motion : ");
 	Serial.print(currInput.motion);
+	Serial.print(", pingOne : ");
+	Serial.print(currInput.pingOne);
+	Serial.print(", pingTwo : ");
+	Serial.print(currInput.pingTwo);
+	Serial.print(", irRange : ");
+	Serial.print(currInput.irRange);
 	Serial.print("}  Ref Input: {");
 	Serial.print("motion : ");
 	Serial.print(referenceInput.motion);
+	Serial.print(", pingOne : ");
+	Serial.print(referenceInput.pingOne);
+	Serial.print(", pingTwo : ");
+	Serial.print(referenceInput.pingTwo);
+	Serial.print(", irRange : ");
+	Serial.print(referenceInput.irRange);
 	Serial.println("}");
 }
 
 void adjustDonutModeForLastInput() {
+		
+
+	/*
 	
+	if (values > movementThreshold)
+		lastMovementTime = millis()
+		if ()
+
+
+
+
+
+	*/
 	// 
 }
 
