@@ -62,7 +62,7 @@ void loop() {
 	processSensorsInput();
 
 	printModeAndMotionInfo();
-	printSensorValues();
+	//printSensorValues();
 
 	delay(150);
 
@@ -125,51 +125,45 @@ void printSensorValues() {
 }
 
 void printModeAndMotionInfo() {
-	String motionStateString;
-
-	switch(currentMotionState()) {		
-		case MotionStateNoMotionNoObjects:
-			motionStateString = "MotionStateNoMotionNoObjects";
-			break;
-		case MotionStateMotionWithoutObjects:
-			motionStateString = "MotionStateMotionWithoutObjects";
-			break;
-		case MotionStateMotionWithObjects:
-			motionStateString = "MotionStateMotionWithObjects";
-			break;
-		case MotionStateNoMotionWithObjects:
-			motionStateString = "MotionStateNoMotionWithObjects";
-			break;
-		case MotionStateUndefined:
-		default:
-			motionStateString = "MotionStateUndefined";
-			break;
-	}
-
-	Serial.print("MotionState:  ");
-	Serial.print(motionStateString);
+	/*
+	Serial.print("  DonutMode:  ");
+	Serial.print(donutModeDescription());
+	Serial.print("  MotionState:  ");
+	Serial.println(motionStateDescription());
+	*/
 }
 
 void adjustDonutModeForLastInput() {
 		
-	MotionState newMotionState = currentMotionState;
-	// 
-	if (currentMotionState == MotionStateNoMotionNoObjects) {
+	MotionState newMotionState = currentMotionState();
+
+
+	DonutMode desiredDonutMode = donutModeForMotionState(newMotionState);
+
+	Serial.print("  DonutMode:  ");
+	Serial.print(donutModeDescription(currMode));
+	Serial.print("  DesiredMode:  ");
+	Serial.print(donutModeDescription(desiredDonutMode));
+	Serial.print("  MotionState:  ");
+	Serial.println(motionStateDescription(newMotionState));
+
+	long unsigned int currTime = millis();
+
+	if (currMode != desiredDonutMode) {
+
+		int minModeDuration = 2000;
+
+		// check if we can switch from the current mode
+		if (currTime - enteredModeTime > minModeDuration) {
+			
+			currMode = nextDonutMode(currMode, desiredDonutMode);
+			enteredModeTime = currTime;			
+		}
 		
+	} else {
+		enteredModeTime = currTime;
 	}
-
-	/*
 	
-	if (values > movementThreshold)
-		lastMovementTime = millis()
-		if ()
-
-
-
-
-
-	*/
-	// 
 }
 
 MotionState currentMotionState() {
