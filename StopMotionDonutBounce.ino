@@ -2,15 +2,24 @@
 #include "DonutTypes.h"
 #include "Helpers.h"
 
+
 #define NUM_SOLENOIDS 4
 #define NON_MOTION_DURATION 3000
 #define PING_TRACKING_OBJECT_THRESHOLD 70
 #define IR_RANGE_TRACKING_OBJECT_THRESHOLD 40
 #define PIR_MOTION_THRESHOLD 0.8
 
+
+// RGB LEDS
+const int redPin = 5;
+const int greenPin = 6;
+const int bluePin = 3;
+
+int red, green, blue; // store current value for each color
+
 // PIR Sensor
-int calibrationTime = 30; // the time we give the sensor to calibrate (10-60 secs according to the datasheet)
-int pirPin = 10;
+const int calibrationTime = 30; // the time we give the sensor to calibrate (10-60 secs according to the datasheet)
+const int pirPin = 10;
 long unsigned int lastNonMotionTime; // use this to check if there has been recent motion
 
 // Solenoids
@@ -22,7 +31,7 @@ int pingPins[] = {11, 12};
 long pingDistances[] = {0, 0};
 
 // IR range sensor
-int irRangePin = A0;
+const int irRangePin = A0;
 
 // Structs to hold current and reference sensor values
 SensorsInput currInput, referenceInput;
@@ -33,6 +42,9 @@ const float lowPassAlpha = 0.4;
 // Current Mode
 DonutMode currMode = DonutModeTesting;
 long unsigned int enteredModeTime;
+
+
+
 
 void setup() {
 
@@ -51,8 +63,13 @@ void setup() {
 		pinMode(solenoidPins[i], OUTPUT);
 	}
 
+	// setup LED Pins
+	pinMode(redPin, OUTPUT);
+	pinMode(greenPin, OUTPUT);
+  	pinMode(bluePin, OUTPUT);
+
 	// calibrate Sensors
-	calibratePIR();
+	calibratePIR(calibrationTime);
 }
 
 void loop() {
@@ -64,15 +81,19 @@ void loop() {
 	printModeAndMotionInfo();
 	//printSensorValues();
 
-	delay(150);
-
 	adjustDonutModeForLastInput();
+
+	updateLEDs();
+	
+	//delay(150);	
 
 	for (int i = 0; i < NUM_SOLENOIDS; i++) {
 		digitalWrite(solenoidPins[i], solenoidState[i]);
 	}
 
 }
+
+
 
 void captureSensorsInput() {
 
@@ -99,53 +120,10 @@ void processSensorsInput() {
 	}
 }
 
-void printSensorValues() {
-	/*
-	Serial.print("   Curr Input: {");
-	Serial.print("motion : ");
-	Serial.print(currInput.motion);
-	Serial.print(", pingOne : ");
-	Serial.print(currInput.pingOne);
-	Serial.print(", pingTwo : ");
-	Serial.print(currInput.pingTwo);
-	Serial.print(", irRange : ");
-	Serial.print(currInput.irRange);
-	Serial.print("}");
-	*/
-	Serial.print("   Ref Input: {");
-	Serial.print("motion : ");
-	Serial.print(referenceInput.motion);
-	Serial.print(", pingOne : ");
-	Serial.print(referenceInput.pingOne);
-	Serial.print(", pingTwo : ");
-	Serial.print(referenceInput.pingTwo);
-	Serial.print(", irRange : ");
-	Serial.print(referenceInput.irRange);
-	Serial.println("}");
-}
-
-void printModeAndMotionInfo() {
-	/*
-	Serial.print("  DonutMode:  ");
-	Serial.print(donutModeDescription());
-	Serial.print("  MotionState:  ");
-	Serial.println(motionStateDescription());
-	*/
-}
-
 void adjustDonutModeForLastInput() {
 		
 	MotionState newMotionState = currentMotionState();
-
-
 	DonutMode desiredDonutMode = donutModeForMotionState(newMotionState);
-
-	Serial.print("  DonutMode:  ");
-	Serial.print(donutModeDescription(currMode));
-	Serial.print("  DesiredMode:  ");
-	Serial.print(donutModeDescription(desiredDonutMode));
-	Serial.print("  MotionState:  ");
-	Serial.println(motionStateDescription(newMotionState));
 
 	long unsigned int currTime = millis();
 
@@ -164,6 +142,38 @@ void adjustDonutModeForLastInput() {
 		enteredModeTime = currTime;
 	}
 	
+}
+
+int stepInterval;
+
+
+void updateLEDs() {
+	if (currMode == DonutModeAttract) {
+		red = 200;
+		green = 200;
+		blue = 200;
+	} else if (currMode == DonutModeAttractToIntrigued) {
+		// TODO add fade
+		red = 0;
+		green = 255;
+		blue = 255;
+	} else if (currMode == DonutModeIntrigued) {
+		red = 0;
+		green = 0;
+		blue = 255;
+	} else if (currMode == DonutModeAngry) {
+		red = 0;
+		green = 255;
+		blue = 0;
+	} else if (currMode == DonutModeFurious) {
+		red = 255;
+		green = 0;
+		blue = 0;
+	}
+
+	analogWrite(redPin, red);
+	analogWrite(greenPin, green);
+	analogWrite(bluePin, blue);
 }
 
 MotionState currentMotionState() {
@@ -213,14 +223,41 @@ void bounceWithCurrentState() {
 	}
 }
 
-void calibratePIR() {
-	//give the sensor some time to calibrate
-	Serial.print("calibrating sensor ");
-    for(int i = 0; i < calibrationTime; i++) {
-      	Serial.print(".");
-     	delay(1000);
-    }
-    Serial.println(" done");
-    Serial.println("SENSOR ACTIVE");
-    delay(50);
+void printSensorValues() {
+	/*
+	Serial.print("   Curr Input: {");
+	Serial.print("motion : ");
+	Serial.print(currInput.motion);
+	Serial.print(", pingOne : ");
+	Serial.print(currInput.pingOne);
+	Serial.print(", pingTwo : ");
+	Serial.print(currInput.pingTwo);
+	Serial.print(", irRange : ");
+	Serial.print(currInput.irRange);
+	Serial.print("}");
+	*/
+	Serial.print("   Ref Input: {");
+	Serial.print("motion : ");
+	Serial.print(referenceInput.motion);
+	Serial.print(", pingOne : ");
+	Serial.print(referenceInput.pingOne);
+	Serial.print(", pingTwo : ");
+	Serial.print(referenceInput.pingTwo);
+	Serial.print(", irRange : ");
+	Serial.print(referenceInput.irRange);
+	Serial.println("}");
+}
+
+void printModeAndMotionInfo() {
+
+	MotionState newMotionState = currentMotionState();
+	DonutMode desiredDonutMode = donutModeForMotionState(newMotionState);
+
+	Serial.print("  DonutMode:  ");
+	Serial.print(donutModeDescription(currMode));
+	Serial.print("  DesiredMode:  ");
+	Serial.print(donutModeDescription(desiredDonutMode));
+	Serial.print("  MotionState:  ");
+	Serial.println(motionStateDescription(newMotionState));
+
 }

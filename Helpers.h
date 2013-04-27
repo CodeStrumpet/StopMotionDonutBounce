@@ -2,6 +2,18 @@
  *	Parallax Ping Sensor
  */
 
+void calibratePIR(int calibrationDuration) {
+	//give the sensor some time to calibrate
+	Serial.print("calibrating sensor ");
+    for(int i = 0; i < calibrationDuration; i++) {
+      	Serial.print(".");
+     	delay(1000);
+    }
+    Serial.println(" done");
+    Serial.println("SENSOR ACTIVE");
+    delay(50);
+}
+
  long durationForPingPin(int pingPin) {
 	// The PING))) is triggered by a HIGH pulse of 2 or more microseconds.
   	// Give a short LOW pulse beforehand to ensure a clean HIGH pulse:

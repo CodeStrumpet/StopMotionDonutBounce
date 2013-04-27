@@ -9,15 +9,25 @@ typedef struct {
 
 
 typedef enum DonutMode {
-	DonutModeNone,
-	DonutModeAttract,
-	DonutModeAttractToIntrigued,
-	DonutModeIntrigued,
-	DonutModeAngry,
-	DonutModeFurious,
-	DonutModeTesting,
-	DonutModeSafe
+	DonutModeNone = 0,
+	DonutModeAttract = 1,
+	DonutModeAttractToIntrigued = 2,
+	DonutModeIntrigued = 3,
+	DonutModeAngry = 4,
+	DonutModeFurious = 5,
+	DonutModeTesting = 6,
+	DonutModeSafe = 7
 } DonutMode;
+
+int donutModeDurations[] = {1000,   // none
+							2000,	// attract							
+							2000, 	// attractToIntrigued
+							3000, 	// intrigued
+							3000,	// angry
+							3000,	// furious
+							3000,	// testing
+							3000, 	// safe
+							};
 
 typedef enum MotionState {
 	MotionStateUndefined,
@@ -60,7 +70,7 @@ DonutMode nextDonutMode(DonutMode currentMode, DonutMode desiredMode) {
 	} else if (currentMode == DonutModeIntrigued && desiredMode == DonutModeAngry) {
 		newDonutMode = DonutModeAngry;
 	} else if (currentMode == DonutModeAttract && desiredMode == DonutModeAngry) {
-		newDonutMode = DonutModeAngry;
+		newDonutMode = DonutModeAttractToIntrigued; // don't switch straight to angry
 	} else if (desiredMode == DonutModeFurious) {
 		newDonutMode = DonutModeFurious;
 	} else {
