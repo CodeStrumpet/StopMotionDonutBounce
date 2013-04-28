@@ -14,6 +14,9 @@
 #define ATTRACT_MODE_MIN_BOUNCE_PERIOD 0
 #define ATTRACT_MODE_MAX_BOUNCE_PERIOD 150
 
+#define ANGRY_MODE_MIN_COLOR_PERIOD 150
+#define ANGRY_MODE_MIN_COLOR_PERIOD 1500
+
 #define DEFAULT_BOUNCE_DURATION 125
 
 
@@ -21,6 +24,9 @@
 const int redPin = 5;
 const int greenPin = 6;
 const int bluePin = 3;
+long unsigned int nextAngryColorChange;
+
+
 
 int red, green, blue; // store current value for each color
 
@@ -164,6 +170,8 @@ void adjustDonutModeForLastInput() {
 void initializeStateUponEnteringMode(DonutMode newMode) {
 	if (newMode == DonutModeAttract) {
 		setNextAttractDonutBounce();
+	} else if (newMode == DonutModeAngry) {
+		setNextAngryColor();
 	}
 }
 
@@ -175,6 +183,19 @@ void setNextAttractDonutBounce() {
 		Serial.print("Next Attract Bounce: ");
 		Serial.println(nextAttractDonutBounce);
 	}
+}
+
+void setNextAngryColor() {
+	long unsigned int time = millis();
+	if (nextAngryColorChange < time) {
+
+		nextAngryColorChange = time + abs(random(ATTRACT_MODE_MIN_BOUNCE_PERIOD, ATTRACT_MODE_MAX_BOUNCE_PERIOD));
+		
+		red = random(0, 255);
+		red = random(0, 255);
+		blue = random(100, 255);
+	}
+	
 }
 
 int stepInterval;
@@ -197,9 +218,9 @@ void updateLEDs() {
 		green = 0;
 		blue = 255;
 	} else if (currMode == DonutModeAngry) {
-		red = 0;
-		green = 255;
-		blue = 0;
+		if (millis() > nextAngryColorChange) {
+			setNextAngryColor();
+		}
 	} else if (currMode == DonutModeFurious) {
 		red = 255;
 		green = 0;
