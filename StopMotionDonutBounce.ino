@@ -84,7 +84,7 @@ void loop() {
 
 	adjustDonutModeForLastInput();
 
-	//updateLEDs();
+	updateLEDs();
 	
 	//delay(150);	
 
@@ -149,6 +149,8 @@ int stepInterval;
 
 
 void updateLEDs() {
+
+
 	if (currMode == DonutModeAttract) {
 		red = 200;
 		green = 200;
