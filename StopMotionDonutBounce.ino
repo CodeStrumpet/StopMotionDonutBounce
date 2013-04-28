@@ -5,10 +5,16 @@
 
 #define NUM_SOLENOIDS 4
 #define NON_MOTION_DURATION 3000
-#define PING_ONE_TRACKING_OBJECT_THRESHOLD 60
-#define PING_TWO_TRACKING_OBJECT_THRESHOLD 30
+#define PING_MIN_TRACKING_OBJECT_THRESHOLD 70
+#define PING_MAX_TRACKING_OBJECT_THRESHOLD 90
+
 #define IR_RANGE_TRACKING_OBJECT_THRESHOLD 40
-#define PIR_MOTION_THRESHOLD 0.8
+#define PIR_MOTION_THRESHOLD 0.4
+
+#define ATTRACT_MODE_MIN_BOUNCE_PERIOD 0
+#define ATTRACT_MODE_MAX_BOUNCE_PERIOD 150
+
+#define DEFAULT_BOUNCE_DURATION 125
 
 
 // RGB LEDS
@@ -26,6 +32,8 @@ long unsigned int lastNonMotionTime; // use this to check if there has been rece
 // Solenoids
 int solenoidPins[] = {2, 7, 8, 9};
 boolean solenoidState[] = {false, false, false, false};
+long solenoidDisabledTimes[] = {0, 0, 0, 0};
+long unsigned int nextAttractDonutBounce;
 
 // Ping sensors
 int pingPins[] = {11, 12};
@@ -79,17 +87,24 @@ void loop() {
 	captureSensorsInput();	
 	processSensorsInput();
 
-	printModeAndMotionInfo();
-	//printSensorValues();
+	//printModeAndMotionInfo();
+	printSensorValues();
 
 	adjustDonutModeForLastInput();
-
 	updateLEDs();
+	updateBounce();
 	
-	//delay(150);	
-
+	
+	// activate solenoids if disabled time is in the future
+	long time = millis();
 	for (int i = 0; i < NUM_SOLENOIDS; i++) {
-		digitalWrite(solenoidPins[i], solenoidState[i]);
+		if (solenoidDisabledTimes[i] > time) {
+			digitalWrite(solenoidPins[i], true);
+			//Serial.println("Bounce!");
+		} else {
+			digitalWrite(solenoidPins[i], false);
+		}
+		
 	}
 
 }
@@ -137,12 +152,29 @@ void adjustDonutModeForLastInput() {
 			
 			currMode = nextDonutMode(currMode, desiredDonutMode);
 			enteredModeTime = currTime;			
+			initializeStateUponEnteringMode(currMode);
 		}
 		
 	} else {
 		enteredModeTime = currTime;
 	}
 	
+}
+
+void initializeStateUponEnteringMode(DonutMode newMode) {
+	if (newMode == DonutModeAttract) {
+		setNextAttractDonutBounce();
+	}
+}
+
+void setNextAttractDonutBounce() {
+	long unsigned int time = millis();
+	if (nextAttractDonutBounce < time) {
+
+		nextAttractDonutBounce = time + abs(random(ATTRACT_MODE_MIN_BOUNCE_PERIOD, ATTRACT_MODE_MAX_BOUNCE_PERIOD));
+		Serial.print("Next Attract Bounce: ");
+		Serial.println(nextAttractDonutBounce);
+	}
 }
 
 int stepInterval;
@@ -179,6 +211,19 @@ void updateLEDs() {
 	analogWrite(bluePin, blue);
 }
 
+void updateBounce() {
+	long time = millis();
+
+	if (currMode == DonutModeAttract) {
+		if (time > nextAttractDonutBounce) {
+			int solenoid = random(0, 4);
+			solenoidDisabledTimes[solenoid] = time + DEFAULT_BOUNCE_DURATION;
+			setNextAttractDonutBounce();
+			Serial.println("set next attract bounce");
+		}
+	}
+}
+
 MotionState currentMotionState() {
 	bool motionPresent = false;
 	if (referenceInput.motion > PIR_MOTION_THRESHOLD) {
@@ -186,9 +231,12 @@ MotionState currentMotionState() {
 	}
 
 	bool trackingObjects = false;
-	if (referenceInput.pingOne < PING_ONE_TRACKING_OBJECT_THRESHOLD ||
-		referenceInput.pingTwo < PING_TWO_TRACKING_OBJECT_THRESHOLD ||
-		referenceInput.irRange > IR_RANGE_TRACKING_OBJECT_THRESHOLD) {
+	if (referenceInput.pingOne < PING_MIN_TRACKING_OBJECT_THRESHOLD ||
+		referenceInput.pingOne > PING_MAX_TRACKING_OBJECT_THRESHOLD ||
+		referenceInput.pingTwo < PING_MIN_TRACKING_OBJECT_THRESHOLD || 
+		referenceInput.pingTwo > PING_MAX_TRACKING_OBJECT_THRESHOLD
+		/* ||
+		referenceInput.irRange > IR_RANGE_TRACKING_OBJECT_THRESHOLD*/) {
 		trackingObjects = true;
 	}
 
@@ -215,6 +263,7 @@ void bounceWithCurrentState() {
 		}
 
 		for (int i = 0; i < NUM_SOLENOIDS; i++) {
+
 			if (i == targetSolenoid) {
 				solenoidState[i] = true;
 			} else {
