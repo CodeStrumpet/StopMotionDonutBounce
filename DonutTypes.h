@@ -67,6 +67,8 @@ DonutMode nextDonutMode(DonutMode currentMode, DonutMode desiredMode) {
 		newDonutMode = DonutModeAttractToIntrigued;
 	} else if (currentMode == DonutModeAttractToIntrigued && desiredMode == DonutModeIntrigued) {
 		newDonutMode = DonutModeIntrigued;
+	}else if (currentMode == DonutModeAttractToIntrigued && desiredMode == DonutModeAngry) {
+		newDonutMode = DonutModeIntrigued;
 	} else if (currentMode == DonutModeIntrigued && desiredMode == DonutModeAngry) {
 		newDonutMode = DonutModeAngry;
 	} else if (currentMode == DonutModeAttract && desiredMode == DonutModeAngry) {

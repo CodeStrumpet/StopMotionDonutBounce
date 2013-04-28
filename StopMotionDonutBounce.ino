@@ -5,7 +5,8 @@
 
 #define NUM_SOLENOIDS 4
 #define NON_MOTION_DURATION 3000
-#define PING_TRACKING_OBJECT_THRESHOLD 70
+#define PING_ONE_TRACKING_OBJECT_THRESHOLD 60
+#define PING_TWO_TRACKING_OBJECT_THRESHOLD 30
 #define IR_RANGE_TRACKING_OBJECT_THRESHOLD 40
 #define PIR_MOTION_THRESHOLD 0.8
 
@@ -18,7 +19,7 @@ const int bluePin = 3;
 int red, green, blue; // store current value for each color
 
 // PIR Sensor
-const int calibrationTime = 30; // the time we give the sensor to calibrate (10-60 secs according to the datasheet)
+const int calibrationTime = 10; // the time we give the sensor to calibrate (10-60 secs according to the datasheet)
 const int pirPin = 10;
 long unsigned int lastNonMotionTime; // use this to check if there has been recent motion
 
@@ -83,7 +84,7 @@ void loop() {
 
 	adjustDonutModeForLastInput();
 
-	updateLEDs();
+	//updateLEDs();
 	
 	//delay(150);	
 
@@ -183,8 +184,8 @@ MotionState currentMotionState() {
 	}
 
 	bool trackingObjects = false;
-	if (referenceInput.pingOne < PING_TRACKING_OBJECT_THRESHOLD ||
-		referenceInput.pingTwo < PING_TRACKING_OBJECT_THRESHOLD||
+	if (referenceInput.pingOne < PING_ONE_TRACKING_OBJECT_THRESHOLD ||
+		referenceInput.pingTwo < PING_TWO_TRACKING_OBJECT_THRESHOLD ||
 		referenceInput.irRange > IR_RANGE_TRACKING_OBJECT_THRESHOLD) {
 		trackingObjects = true;
 	}
