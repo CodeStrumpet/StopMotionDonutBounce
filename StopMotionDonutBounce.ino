@@ -11,11 +11,14 @@
 #define IR_RANGE_TRACKING_OBJECT_THRESHOLD 40
 #define PIR_MOTION_THRESHOLD 0.4
 
-#define ATTRACT_MODE_MIN_BOUNCE_PERIOD 0
-#define ATTRACT_MODE_MAX_BOUNCE_PERIOD 150
+#define ATTRACT_MODE_MIN_BOUNCE_PERIOD 500
+#define ATTRACT_MODE_MAX_BOUNCE_PERIOD 1000
 
-#define ANGRY_MODE_MIN_COLOR_PERIOD 150
-#define ANGRY_MODE_MIN_COLOR_PERIOD 1500
+#define ANGRY_MODE_MIN_BOUNCE_PERIOD 0
+#define ANGRY_MODE_MAX_BOUNCE_PERIOD 150
+
+#define ANGRY_MODE_MIN_COLOR_PERIOD 10
+#define ANGRY_MODE_MIN_COLOR_PERIOD 20
 
 #define DEFAULT_BOUNCE_DURATION 125
 
@@ -40,6 +43,7 @@ int solenoidPins[] = {2, 7, 8, 9};
 boolean solenoidState[] = {false, false, false, false};
 long solenoidDisabledTimes[] = {0, 0, 0, 0};
 long unsigned int nextAttractDonutBounce;
+long unsigned int nextAngryDonutBounce;
 
 // Ping sensors
 int pingPins[] = {11, 12};
@@ -57,6 +61,7 @@ const float lowPassAlpha = 0.4;
 // Current Mode
 DonutMode currMode = DonutModeTesting;
 long unsigned int enteredModeTime;
+long unsigned int originalEnteredModeTime;
 
 
 
@@ -94,7 +99,7 @@ void loop() {
 	processSensorsInput();
 
 	//printModeAndMotionInfo();
-	printSensorValues();
+	//printSensorValues();
 
 	adjustDonutModeForLastInput();
 	updateLEDs();
@@ -151,13 +156,14 @@ void adjustDonutModeForLastInput() {
 
 	if (currMode != desiredDonutMode) {
 
-		int minModeDuration = 2000;
+		int minModeDuration = donutModeDurations[currMode];
 
 		// check if we can switch from the current mode
 		if (currTime - enteredModeTime > minModeDuration) {
 			
 			currMode = nextDonutMode(currMode, desiredDonutMode);
-			enteredModeTime = currTime;			
+			enteredModeTime = currTime;		
+			originalEnteredModeTime = currTime;	
 			initializeStateUponEnteringMode(currMode);
 		}
 		
@@ -172,16 +178,21 @@ void initializeStateUponEnteringMode(DonutMode newMode) {
 		setNextAttractDonutBounce();
 	} else if (newMode == DonutModeAngry) {
 		setNextAngryColor();
+		setNextAngryDonutBounce();
 	}
 }
 
 void setNextAttractDonutBounce() {
 	long unsigned int time = millis();
 	if (nextAttractDonutBounce < time) {
-
 		nextAttractDonutBounce = time + abs(random(ATTRACT_MODE_MIN_BOUNCE_PERIOD, ATTRACT_MODE_MAX_BOUNCE_PERIOD));
-		Serial.print("Next Attract Bounce: ");
-		Serial.println(nextAttractDonutBounce);
+	}
+}
+
+void setNextAngryDonutBounce() {
+	long unsigned int time = millis();
+	if (nextAngryDonutBounce < time) {
+		nextAngryDonutBounce = time + abs(random(ANGRY_MODE_MIN_BOUNCE_PERIOD, ANGRY_MODE_MAX_BOUNCE_PERIOD));
 	}
 }
 
@@ -189,11 +200,41 @@ void setNextAngryColor() {
 	long unsigned int time = millis();
 	if (nextAngryColorChange < time) {
 
-		nextAngryColorChange = time + abs(random(ATTRACT_MODE_MIN_BOUNCE_PERIOD, ATTRACT_MODE_MAX_BOUNCE_PERIOD));
+		nextAngryColorChange = time + abs(random(ATTRACT_MODE_MIN_BOUNCE_PERIOD, ATTRACT_MODE_MAX_BOUNCE_PERIOD));		
+
+		int randColor = random(0, 6);
+
+		if (randColor == 0) {
+			red = random(0, 255);
+			green = random(0, 255);
+			blue = random(100, 255);
+		} else if (randColor == 1) {
+			red = random(0, 255);
+			green = random(100, 255);
+			blue = random(0, 255);
+		} else if (randColor == 2) {
+			red = 255;
+			green = 0;
+			blue = 0;
+		} else if (randColor == 3) {
+			red = 0;
+			green = 255;
+			blue = 0;
+		} else if (randColor == 4) {
+			red = 0;
+			green = 255;
+			blue = 255;
+		} else if (randColor == 5) {
+			red = 100;
+			green = 255;
+			blue = 200;
+
+		} else {
+			red = 200;
+			green = 200;
+			blue = 100;
+		}
 		
-		red = random(0, 255);
-		red = random(0, 255);
-		blue = random(100, 255);
 	}
 	
 }
@@ -239,8 +280,13 @@ void updateBounce() {
 		if (time > nextAttractDonutBounce) {
 			int solenoid = random(0, 4);
 			solenoidDisabledTimes[solenoid] = time + DEFAULT_BOUNCE_DURATION;
-			setNextAttractDonutBounce();
-			Serial.println("set next attract bounce");
+			setNextAttractDonutBounce();			
+		}
+	} else if (currMode == DonutModeAngry) {
+		if (time > nextAngryDonutBounce) {
+			int solenoid = random(0, 4);
+			solenoidDisabledTimes[solenoid] = time + DEFAULT_BOUNCE_DURATION;
+			setNextAngryDonutBounce();			
 		}
 	}
 }
@@ -252,6 +298,11 @@ MotionState currentMotionState() {
 	}
 
 	bool trackingObjects = false;
+
+	if (motionPresent) {
+		trackingObjects = true;
+	}
+	
 	if (referenceInput.pingOne < PING_MIN_TRACKING_OBJECT_THRESHOLD ||
 		referenceInput.pingOne > PING_MAX_TRACKING_OBJECT_THRESHOLD ||
 		referenceInput.pingTwo < PING_MIN_TRACKING_OBJECT_THRESHOLD || 
@@ -261,16 +312,22 @@ MotionState currentMotionState() {
 		trackingObjects = true;
 	}
 
+
 	MotionState motionState = MotionStateUndefined;
 	if (!motionPresent && !trackingObjects) {	// No motion and no objects
 		motionState = MotionStateNoMotionNoObjects;
 	} else if (motionPresent && !trackingObjects) {	// motion but no objects
 		motionState = MotionStateMotionWithoutObjects;
+	} else if (trackingObjects && 
+				(currMode == DonutModeIntrigued) &&
+				millis() - originalEnteredModeTime > 4000 ) { // No motion and objects 
+		motionState = MotionStateNoMotionWithObjects;
 	} else if (motionPresent && trackingObjects) { // motion and objects
 		motionState = MotionStateMotionWithObjects;
-	} else if (!motionPresent && trackingObjects) { // No motion and objects 
+	} 
+	/*else if (!motionPresent && trackingObjects) { // No motion and objects 
 		motionState = MotionStateNoMotionWithObjects;
-	}
+	}*/
 
 	return motionState;
 }

@@ -23,7 +23,7 @@ int donutModeDurations[] = {1000,   // none
 							2000,	// attract							
 							2000, 	// attractToIntrigued
 							3000, 	// intrigued
-							3000,	// angry
+							6000,	// angry
 							3000,	// furious
 							3000,	// testing
 							3000, 	// safe
