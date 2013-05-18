@@ -2,13 +2,15 @@
 // in the #defines
 // public domain, enjoy!
  
-#define REDPIN 5
-#define GREENPIN 6
+#define REDPIN 6
+#define GREENPIN 5
 #define BLUEPIN 3
 
 #define FADEPIN 2
  
 #define FADESPEED 5     // make this higher to slow down
+
+int motionMode = -1;
  
 void setup() {
   pinMode(REDPIN, OUTPUT);
@@ -23,7 +25,38 @@ void loop() {
 
 
   int r, g, b;
+
+
+
+  if (Serial.available() > 0) {
+      // read the incoming byte:
+      motionMode = Serial.read();
+  }
+
+  if (motionMode == 'a') {
+    r = 255;
+    g = 0;
+    b = 0;
+  } else if (motionMode == 'b') {
+    r = 0;
+    g = 255;
+    b = 0;
+  } else if (motionMode == 'c') {
+    r = 0;
+    g = 0;
+    b = 255;
+  } else {
+    r = 0;
+    g = 0;
+    b = 0;
+  }
+
+  analogWrite(REDPIN, r);
+  analogWrite(GREENPIN, g);
+  analogWrite(BLUEPIN, b);
  
+
+  /*
   // fade from blue to violet
   for (r = 0; r < 256; r++) { 
     analogWrite(REDPIN, r);
@@ -56,6 +89,7 @@ void loop() {
   } 
 
 
+*/
 
 /*
 
