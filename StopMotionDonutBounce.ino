@@ -22,6 +22,8 @@
 
 #define DEFAULT_BOUNCE_DURATION 125
 
+#define SERIAL_READ_INTERVAL 10
+
 
 // RGB LEDS
 const int redPin = 5;
@@ -63,7 +65,11 @@ DonutMode currMode = DonutModeTesting;
 long unsigned int enteredModeTime;
 long unsigned int originalEnteredModeTime;
 
+// Cached motionstate value
+MotionState lastMotionState = MotionStateNoMotionNoObjects;
 
+// last serial read time
+long unsigned int lastSerialRead = 0;
 
 
 void setup() {
@@ -89,14 +95,14 @@ void setup() {
   	pinMode(bluePin, OUTPUT);
 
 	// calibrate Sensors
-	calibratePIR(calibrationTime);
+	//calibratePIR(calibrationTime);
 }
 
 void loop() {
 
 	// capture and process sensors input
-	captureSensorsInput();	
-	processSensorsInput();
+	//captureSensorsInput();	
+	//processSensorsInput();
 
 	//printModeAndMotionInfo();
 	//printSensorValues();
@@ -292,44 +298,24 @@ void updateBounce() {
 }
 
 MotionState currentMotionState() {
-	bool motionPresent = false;
-	if (referenceInput.motion > PIR_MOTION_THRESHOLD) {
-		motionPresent = true;
-	}
+	if (millis() - lastSerialRead > SERIAL_READ_INTERVAL && Serial.available() > 0) {
+      // read the incoming byte:
+      int motionMode = Serial.read();
 
-	bool trackingObjects = false;
+   	 if (motionMode == 'a') {
+	    lastMotionState = MotionStateNoMotionNoObjects;
+	  } else if (motionMode == 'b') {
+	    lastMotionState = MotionStateMotionWithObjects;
+	  } else if (motionMode == 'c') {
+	    lastMotionState = MotionStateNoMotionWithObjects;
+	  } else {
+	    lastMotionState = MotionStateUndefined;
+	  }
 
-	if (motionPresent) {
-		trackingObjects = true;
-	}
-	
-	if (referenceInput.pingOne < PING_MIN_TRACKING_OBJECT_THRESHOLD ||
-		referenceInput.pingOne > PING_MAX_TRACKING_OBJECT_THRESHOLD ||
-		referenceInput.pingTwo < PING_MIN_TRACKING_OBJECT_THRESHOLD || 
-		referenceInput.pingTwo > PING_MAX_TRACKING_OBJECT_THRESHOLD
-		/* ||
-		referenceInput.irRange > IR_RANGE_TRACKING_OBJECT_THRESHOLD*/) {
-		trackingObjects = true;
-	}
+	  lastSerialRead = millis();
+  }
 
-
-	MotionState motionState = MotionStateUndefined;
-	if (!motionPresent && !trackingObjects) {	// No motion and no objects
-		motionState = MotionStateNoMotionNoObjects;
-	} else if (motionPresent && !trackingObjects) {	// motion but no objects
-		motionState = MotionStateMotionWithoutObjects;
-	} else if (trackingObjects && 
-				(currMode == DonutModeIntrigued) &&
-				millis() - originalEnteredModeTime > 4000 ) { // No motion and objects 
-		motionState = MotionStateNoMotionWithObjects;
-	} else if (motionPresent && trackingObjects) { // motion and objects
-		motionState = MotionStateMotionWithObjects;
-	} 
-	/*else if (!motionPresent && trackingObjects) { // No motion and objects 
-		motionState = MotionStateNoMotionWithObjects;
-	}*/
-
-	return motionState;
+	return lastMotionState;
 }
 
 int targetSolenoid = 0;

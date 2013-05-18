@@ -32,7 +32,6 @@ int donutModeDurations[] = {1000,   // none
 typedef enum MotionState {
 	MotionStateUndefined,
 	MotionStateNoMotionNoObjects,
-	MotionStateMotionWithoutObjects,
 	MotionStateMotionWithObjects,
 	MotionStateNoMotionWithObjects,
 } MotionState;
@@ -48,8 +47,6 @@ SensorsInput sensorsInputLowPassResult(SensorsInput newInput, SensorsInput refIn
 DonutMode donutModeForMotionState(MotionState motionState) {
 	DonutMode donutMode = DonutModeNone;
 	if (motionState == MotionStateNoMotionNoObjects) {
-		donutMode = DonutModeAttract;
-	} else if (motionState == MotionStateMotionWithoutObjects) {
 		donutMode = DonutModeAttract;
 	} else if (motionState == MotionStateMotionWithObjects) {
 		donutMode = DonutModeIntrigued;
@@ -87,9 +84,6 @@ String motionStateDescription(MotionState motionState) {
 	switch(motionState) {		
 		case MotionStateNoMotionNoObjects:
 			motionStateString = "MotionStateNoMotionNoObjects";
-			break;
-		case MotionStateMotionWithoutObjects:
-			motionStateString = "MotionStateMotionWithoutObjects";
 			break;
 		case MotionStateMotionWithObjects:
 			motionStateString = "MotionStateMotionWithObjects";
