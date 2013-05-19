@@ -31,6 +31,11 @@ const int greenPin = 5;//6;
 const int bluePin = 3;//5;
 long unsigned int nextAngryColorChange;
 
+int stepInterval = 2;
+unsigned long long lastStepUpdateTime = 0;
+int numSteps = 256;
+int fadeIndex = 0;
+
 
 
 int red, green, blue; // store current value for each color
@@ -188,6 +193,8 @@ void initializeStateUponEnteringMode(DonutMode newMode) {
 	} else if (newMode == DonutModeAngry) {
 		setNextAngryColor();
 		setNextAngryDonutBounce();
+	} else if (newMode == DonutModeIntriguedToAngry) {
+		fadeIndex = 0;
 	}
 }
 
@@ -248,7 +255,6 @@ void setNextAngryColor() {
 	
 }
 
-int stepInterval;
 
 
 void updateLEDs() {
@@ -268,9 +274,28 @@ void updateLEDs() {
 		green = 0;
 		blue = 255;
 	} else if (currMode == DonutModeIntriguedToAngry) {
-		red = 50;
-		green = 255;
-		blue = 100;
+
+
+		if (millis() - lastStepUpdateTime > stepInterval) {
+			int red1 = 0;
+			int green1 = 0;
+			int blue1 = 255;
+			int red2 = 255;
+			int green2 = 0;
+			int blue2 = 0;
+
+
+			red = (red1 * (numSteps - fadeIndex) + red2 * fadeIndex)/numSteps;
+	      	green = (green1 * (numSteps - fadeIndex) + green2 * fadeIndex)/numSteps;
+	      	blue = (blue1 * (numSteps - fadeIndex) + blue2 * fadeIndex)/numSteps;
+
+	      	lastStepUpdateTime = millis();
+	      	fadeIndex++;
+		}
+
+		//red = 50;
+		//green = 255;
+		//blue = 100;
 	} else if (currMode == DonutModeAngry) {
 		if (millis() > nextAngryColorChange) {
 			setNextAngryColor();
