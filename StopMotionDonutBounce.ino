@@ -26,9 +26,9 @@
 
 
 // RGB LEDS
-const int redPin = 6;//3;    
-const int greenPin = 5;//6;
-const int bluePin = 3;//5;
+const int redPin = 3;    //6;
+const int greenPin = 6;  //5;
+const int bluePin = 5;   // 3;
 long unsigned int nextAngryColorChange;
 
 int stepInterval = 2;
