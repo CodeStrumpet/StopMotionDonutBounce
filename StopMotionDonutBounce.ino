@@ -163,6 +163,11 @@ void adjustDonutModeForLastInput() {
 
 		int minModeDuration = donutModeDurations[currMode];
 
+		// bit of a hack to ensure we can always switch out of IntriguedToAttractMode to a less angry mode
+		if (currMode == DonutModeIntriguedToAngry && desiredDonutMode < DonutModeIntriguedToAngry) {
+			minModeDuration = 0;
+		}
+
 		// check if we can switch from the current mode
 		if (currTime - enteredModeTime > minModeDuration) {
 			
@@ -263,9 +268,9 @@ void updateLEDs() {
 		green = 0;
 		blue = 255;
 	} else if (currMode == DonutModeIntriguedToAngry) {
-		red = 200;  
-		green = 0;
-		blue = 255;
+		red = 50;
+		green = 255;
+		blue = 100;
 	} else if (currMode == DonutModeAngry) {
 		if (millis() > nextAngryColorChange) {
 			setNextAngryColor();
