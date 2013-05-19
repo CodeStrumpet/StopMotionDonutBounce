@@ -22,8 +22,8 @@ typedef enum DonutMode {
 int donutModeDurations[] = {1000,   // none
 							2000,	// attract							
 							2000, 	// attractToIntrigued
-							3000, 	// intrigued
-							6000,	// angry
+							2000, 	// intrigued
+							2000,	// angry
 							3000,	// furious
 							3000,	// testing
 							3000, 	// safe

@@ -26,9 +26,9 @@
 
 
 // RGB LEDS
-const int redPin = 5;
-const int greenPin = 6;
-const int bluePin = 3;
+const int redPin = 6;//3;    
+const int greenPin = 5;//6;
+const int bluePin = 3;//5;
 long unsigned int nextAngryColorChange;
 
 
@@ -120,8 +120,7 @@ void loop() {
 			//Serial.println("Bounce!");
 		} else {
 			digitalWrite(solenoidPins[i], false);
-		}
-		
+		}		
 	}
 
 }
@@ -175,8 +174,7 @@ void adjustDonutModeForLastInput() {
 		
 	} else {
 		enteredModeTime = currTime;
-	}
-	
+	}	
 }
 
 void initializeStateUponEnteringMode(DonutMode newMode) {
@@ -261,7 +259,8 @@ void updateLEDs() {
 		green = 255;
 		blue = 255;
 	} else if (currMode == DonutModeIntrigued) {
-		red = 0;
+		//  // 221 160 221
+		red = 0;  
 		green = 0;
 		blue = 255;
 	} else if (currMode == DonutModeAngry) {
