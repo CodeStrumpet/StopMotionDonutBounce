@@ -13,16 +13,18 @@ typedef enum DonutMode {
 	DonutModeAttract = 1,
 	DonutModeAttractToIntrigued = 2,
 	DonutModeIntrigued = 3,
-	DonutModeAngry = 4,
-	DonutModeFurious = 5,
-	DonutModeTesting = 6,
-	DonutModeSafe = 7
+	DonutModeIntriguedToAngry = 4,
+	DonutModeAngry = 5,
+	DonutModeFurious = 6,
+	DonutModeTesting = 7,
+	DonutModeSafe = 8
 } DonutMode;
 
 int donutModeDurations[] = {1000,   // none
 							2000,	// attract							
 							2000, 	// attractToIntrigued
-							2000, 	// intrigued
+							200,	// intrigued
+							3000,	// intrigedToAngry
 							2000,	// angry
 							3000,	// furious
 							3000,	// testing
@@ -67,7 +69,13 @@ DonutMode nextDonutMode(DonutMode currentMode, DonutMode desiredMode) {
 	}else if (currentMode == DonutModeAttractToIntrigued && desiredMode == DonutModeAngry) {
 		newDonutMode = DonutModeIntrigued;
 	} else if (currentMode == DonutModeIntrigued && desiredMode == DonutModeAngry) {
+		newDonutMode = DonutModeIntriguedToAngry;
+	} else if (currentMode == DonutModeIntriguedToAngry && desiredMode == DonutModeAngry) {
 		newDonutMode = DonutModeAngry;
+	} else if (currentMode == DonutModeIntriguedToAngry && desiredMode == DonutModeIntrigued) {
+		newDonutMode = DonutModeIntrigued;
+	} else if (currentMode == DonutModeIntriguedToAngry && desiredMode == DonutModeAttract) {
+		newDonutMode = DonutModeAttract;
 	} else if (currentMode == DonutModeAttract && desiredMode == DonutModeAngry) {
 		newDonutMode = DonutModeAttractToIntrigued; // don't switch straight to angry
 	} else if (desiredMode == DonutModeFurious) {
@@ -116,6 +124,9 @@ String donutModeDescription(DonutMode donutMode) {
 			break;
 		case DonutModeIntrigued:
 			donutModeString = "DonutModeIntrigued";
+			break;
+		case DonutModeIntriguedToAngry:
+			donutModeString = "DonutModeIntriguedToAngry";
 			break;
 		case DonutModeAngry:
 			donutModeString = "DonutModeAngry";

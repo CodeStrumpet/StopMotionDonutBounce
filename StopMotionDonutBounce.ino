@@ -259,8 +259,11 @@ void updateLEDs() {
 		green = 255;
 		blue = 255;
 	} else if (currMode == DonutModeIntrigued) {
-		//  // 221 160 221
 		red = 0;  
+		green = 0;
+		blue = 255;
+	} else if (currMode == DonutModeIntriguedToAngry) {
+		red = 200;  
 		green = 0;
 		blue = 255;
 	} else if (currMode == DonutModeAngry) {
