@@ -3,6 +3,8 @@
 #include "Helpers.h"
 
 
+#define USE_CONNECTED_SENSORS true
+
 #define NUM_SOLENOIDS 4
 #define NON_MOTION_DURATION 3000
 #define PING_MIN_TRACKING_OBJECT_THRESHOLD 70
@@ -11,6 +13,7 @@
 #define IR_RANGE_TRACKING_OBJECT_THRESHOLD 40
 #define PIR_MOTION_THRESHOLD 0.4
 
+#define ATTRACT_MODE_BOUNCE_ENABLED false
 #define ATTRACT_MODE_MIN_BOUNCE_PERIOD 500
 #define ATTRACT_MODE_MAX_BOUNCE_PERIOD 1000
 
@@ -109,9 +112,11 @@ void setup() {
 
 void loop() {
 
-	// capture and process sensors input
-	//captureSensorsInput();	
-	//processSensorsInput();
+	if (USE_CONNECTED_SENSORS) {
+		// capture and process sensors input
+		captureSensorsInput();	
+		processSensorsInput();
+	}
 
 	//printModeAndMotionInfo();
 	//printSensorValues();
@@ -131,7 +136,7 @@ void loop() {
 			digitalWrite(solenoidPins[i], false);
 		}		
 	}
-
+	delay(100);
 }
 
 
@@ -163,7 +168,13 @@ void processSensorsInput() {
 
 void adjustDonutModeForLastInput() {
 		
-	MotionState newMotionState = currentMotionState();
+	MotionState newMotionState;
+	if (USE_CONNECTED_SENSORS) {
+		newMotionState = currentSensorMotionState();
+	} else {
+		newMotionState = currentMotionState();	
+	}
+	 
 	DonutMode desiredDonutMode = donutModeForMotionState(newMotionState);
 
 	long unsigned int currTime = millis();
@@ -314,7 +325,7 @@ void updateLEDs() {
 void updateBounce() {
 	long time = millis();
 
-	if (currMode == DonutModeAttract) {
+	if (currMode == DonutModeAttract && ATTRACT_MODE_BOUNCE_ENABLED) {
 		if (time > nextAttractDonutBounce) {
 			int solenoid = random(0, 4);
 			solenoidDisabledTimes[solenoid] = time + DEFAULT_BOUNCE_DURATION;
@@ -347,6 +358,18 @@ MotionState currentMotionState() {
 	  lastSerialRead = millis();
   }
 
+	return lastMotionState;
+}
+
+
+MotionState currentSensorMotionState() {
+	if (referenceInput.pingOne < 60 && referenceInput.pingTwo < 60) {
+		lastMotionState = MotionStateNoMotionWithObjects;
+	} else if (referenceInput.pingOne < 60) {
+		lastMotionState = MotionStateMotionWithObjects;
+	} else {
+		lastMotionState = MotionStateNoMotionNoObjects;
+	}
 	return lastMotionState;
 }
 

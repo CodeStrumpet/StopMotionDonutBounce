@@ -1,0 +1,9 @@
+{
+    "baudrate": "9600", 
+    "global_setting": true, 
+    "language": "English", 
+    "serial_port": "/dev/cu.Bluetooth-Modem", 
+    "show_arduino_menu": true, 
+    "show_serial_monitor_menu": "", 
+    "sketchbook_root": "/Users/rockfakie/Documents/Arduino"
+}
