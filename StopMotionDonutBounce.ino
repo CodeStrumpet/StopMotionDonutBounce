@@ -283,13 +283,13 @@ void updateLEDs() {
 
 
 	if (currMode == DonutModeAttract) {
-		red = 200;
-		green = 200;
-		blue = 200;
+		red = 0;
+		green = 100;
+		blue = 255;
 	} else if (currMode == DonutModeAttractToIntrigued) {
 		// TODO add fade
-		red = 0;
-		green = 255;
+		red = 200;
+		green = 0;
 		blue = 255;
 	} else if (currMode == DonutModeIntrigued) {
 		red = 0;  

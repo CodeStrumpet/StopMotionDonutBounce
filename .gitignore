@@ -17,4 +17,56 @@
 *.app
 *~
 
+.DS_Store# ONI files
+*.oni
+
+
+
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+## C++
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+
+
+## OS X
 .DS_Store
+.AppleDouble
+.LSOverride
+Icon
+xcuserdata
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+*.oni
+/bin/data/openni
